@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流式响应展示</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        #response-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 200px;
+            background-color: #f9f9f9;
+            word-break: break-word;
+            line-height: 1.8;
+            white-space: pre-line; /* 添加这一行来正确处理换行符 */
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .status-receiving {
+            color: #007bff;
+        }
+        .status-completed {
+            color: #28a745;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>腾讯元器智能体流式响应</h1>
+    <div id="response-container"></div>
+    <div id="status"></div>
+    <button onclick="location.reload()">重新开始</button>
+    
+    <script>
+        // 创建EventSource连接到服务器发送事件端点
+        const eventSource = new EventSource('/stream');
+        const responseContainer = document.getElementById('response-container');
+        const status = document.getElementById('status');
+        
+        // 监听消息事件
+        eventSource.onmessage = function(event) {
+            // 将textContent改为innerHTML，这样HTML标签如<br>才能被正确解析
+            responseContainer.innerHTML += event.data;
+            
+            // 自动滚动到底部
+            responseContainer.scrollTop = responseContainer.scrollHeight;
+        };
+        
+        // 监听连接打开事件
+        eventSource.onopen = function() {
+            status.textContent = '正在接收响应...';
+            status.className = 'status-receiving';
+        };
+        
+        // 监听连接错误事件
+        eventSource.onerror = function(error) {
+            status.textContent = '连接错误或已关闭';
+            status.className = 'status-completed';
+            eventSource.close();
+        };
+        
+        // 定期检查是否完成接收
+        function checkStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_receiving === false && responseContainer.textContent) {
+                        status.textContent = '响应接收完成';
+                        status.className = 'status-completed';
+                        eventSource.close();
+                    } else {
+                        setTimeout(checkStatus, 1000);
+                    }
+                });
+        }
+        
+        // 开始检查状态
+        checkStatus();
+    </script>
+</body>
+</html>

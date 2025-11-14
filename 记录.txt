@@ -1,0 +1,4 @@
+腾讯元器的地址
+https://yuanqi.tencent.com/my-creation/agent
+
+http://localhost:5000/?text={word}
