@@ -13,3 +13,4 @@ https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?p
 使用这个快捷方式运行它
 "C:\chromium-test\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\chromium-test\Chromium_Profiles\Profile_1"
 
+ssss iiiii iiiii aaa带i   输入 ddddd 输入 

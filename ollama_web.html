@@ -1,0 +1,145 @@
+<!-- f:\code\腾讯元器智能体get代理\ollama_web.html - Ollama流式响应界面 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama 流式响应</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        #response-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 200px;
+            background-color: #f9f9f9;
+            word-break: break-word;
+            line-height: 1.8;
+            white-space: pre-line;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .status-receiving {
+            color: #007bff;
+        }
+        .status-completed {
+            color: #28a745;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .back-button {
+            background-color: #6c757d;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ollama 流式响应</h1>
+    
+    <div id="response-container">等待响应...</div>
+    <div id="status">正在连接...</div>
+    
+    <button onclick="location.href='/input'" class="back-button">返回输入界面</button>
+    <button onclick="location.reload()">重新开始</button>
+    
+    <script>
+        const responseContainer = document.getElementById('response-container');
+        const status = document.getElementById('status');
+        let hasReceivedData = false;
+        
+        // 创建EventSource连接到服务器发送事件端点
+        const eventSource = new EventSource('/stream');
+        
+        // 监听消息事件
+        eventSource.onmessage = function(event) {
+            // 过滤空数据和心跳信号
+            if (event.data && event.data.trim() !== '' && event.data !== ':heartbeat') {
+                if (!hasReceivedData) {
+                    hasReceivedData = true;
+                    responseContainer.innerHTML = ''; // 清空"等待响应..."文本
+                }
+                responseContainer.innerHTML += event.data;
+                responseContainer.scrollTop = responseContainer.scrollHeight;
+            }
+        };
+        
+        // 监听连接打开事件
+        eventSource.onopen = function() {
+            status.textContent = '正在接收响应...';
+            status.className = 'status-receiving';
+        };
+        
+        // 监听连接错误事件
+        eventSource.onerror = function(error) {
+            status.textContent = '连接完成或出错';
+            status.className = 'status-completed';
+            eventSource.close();
+            
+            // 如果没有收到数据，显示提示
+            if (!hasReceivedData) {
+                responseContainer.innerHTML = '未收到响应数据，请确保Ollama服务正在运行且模型可用。';
+            }
+        };
+        
+        // 定期检查是否完成接收
+        function checkStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('状态检查:', data);
+                    
+                    if (data.is_receiving === false) {
+                        if (hasReceivedData || data.response_length > 0) {
+                            status.textContent = '响应接收完成';
+                            status.className = 'status-completed';
+                            eventSource.close();
+                        } else if (!hasReceivedData) {
+                            status.textContent = '未收到响应数据';
+                            status.className = 'status-completed';
+                            responseContainer.innerHTML = '未收到响应数据，请检查Ollama服务状态。';
+                            eventSource.close();
+                        }
+                    } else {
+                        // 还在接收中，继续检查
+                        setTimeout(checkStatus, 500);
+                    }
+                })
+                .catch(error => {
+                    console.error('状态检查错误:', error);
+                    setTimeout(checkStatus, 1000);
+                });
+        }
+        
+        // 开始检查状态
+        setTimeout(checkStatus, 1000);
+    </script>
+</body>
+</html>

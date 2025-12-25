@@ -19,7 +19,7 @@ echo.
 
 rem 运行Python脚本
 echo 正在启动connAgent.py...
-python connAgent.py
+python local-lama.py
 
 rem 脚本结束后的处理
 if %ERRORLEVEL% neq 0 (

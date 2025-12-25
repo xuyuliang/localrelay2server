@@ -495,26 +495,34 @@ async def main():
             return
         
         # 等待页面加载完成
-        await asyncio.sleep(3)
+        # await asyncio.sleep(3)
         
         # 用户提供的选择器
         css_selector = "#app > div > div.yb-layout__content.agent-layout__content > div > div > div.agent-dialogue__content > div > div.Pane.vertical.Pane1 > div > div.agent-dialogue__content--common__input.agent-chat__input-box > div > div.agent-dialogue__content--common__input-box > div > div > div.style__text-area__wrapper___W6mrC > div.style__text-area__start___z71p8.style__tooltipLiteBox___avW6d > div > div > div > div > p"
-        
+        # 要输入的文本
+        text_to_input = "Is life so dear or peace so sweet as to be purchased at the price of chains and slavery? Forbid it, Almighty God! I know not what course others may take; but as for me, give me liberty or give me death!"
+        # 提交按钮的CSS选择器
+        submit_button_css_selector = "#yuanbao-send-btn > span"
+        # 反馈元素的CSS选择器
+        feedback_css_selector = "#chat-content"
+        '''
         # 测试CSS选择器
         found, element_info = await test_selector(client, "CSS选择器", css_selector)
         
         # 如果找到了元素且元素可编辑，尝试输入文本
         if found and element_info and element_info.get('isContentEditable'):
             logger.info("找到可编辑元素，准备输入文本...")
-            # 要输入的文本
-            text_to_input = "Is life so dear or peace so sweet as to be purchased at the price of chains and slavery? Forbid it, Almighty God! I know not what course others may take; but as for me, give me liberty or give me death!"
             # 输入文本
             await input_text_in_element(client, css_selector, text_to_input)
         elif found:
             logger.warning("找到元素，但该元素不可编辑，无法输入文本")
         else:
             logger.warning("未找到元素，无法输入文本")
+        '''
+        # 输入文本
+        await input_text_in_element(client, css_selector, text_to_input)
         
+        '''
         # JavaScript路径
         js_path = "document.querySelector('#app > div > div.yb-layout__content.agent-layout__content > div > div > div.agent-dialogue__content > div > div.Pane.vertical.Pane1 > div > div.agent-dialogue__content--common__input.agent-chat__input-box > div > div.agent-dialogue__content--common__input-box > div > div > div.style__text-area__wrapper___W6mrC > div.style__text-area__start___z71p8.style__tooltipLiteBox___avW6d > div > div > div > div > p')"
         await test_js_path(client, js_path)
@@ -522,13 +530,13 @@ async def main():
         # 测试提交按钮
         logger.info("\n===== 测试提交按钮 =====")
         submit_button_js_path = "document.querySelector(\"#yuanbao-send-btn > span\")"
-        submit_button_css_selector = "#yuanbao-send-btn > span"
         
         # 测试提交按钮的JS路径
         found_button, button_info = await test_js_path(client, submit_button_js_path)
         
         # 直接使用CSS选择器测试提交按钮
         if not found_button:
+
             found_button, button_info = await test_selector(client, "提交按钮CSS选择器", submit_button_css_selector)
         
         # 如果找到了提交按钮，尝试点击它
@@ -537,6 +545,11 @@ async def main():
             await click_element(client, submit_button_css_selector)
         else:
             logger.warning("未找到提交按钮，无法执行点击操作")
+        '''
+
+        # 点击提交按钮
+        await asyncio.sleep(1)
+        await click_element(client, submit_button_css_selector)
         
     except KeyboardInterrupt:
         logger.info("用户中断操作")
