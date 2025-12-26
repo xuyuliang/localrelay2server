@@ -564,6 +564,7 @@ async def main():
 if __name__ == "__main__":
     try:
         asyncio.run(main())
+        
     except KeyboardInterrupt:
         logger.info("程序被用户中断")
     except Exception as e:
