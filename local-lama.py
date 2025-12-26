@@ -32,7 +32,9 @@ def stream_response_from_api(user_text=None):
     update_response("开始接收Ollama API响应...<br>")
     
     # Ollama API配置
-    url = 'http://127.0.0.1:11434/api/generate'
+    server_ip = '172.27.22.133'  # 修改为你的Ollama服务器IP地址
+    # server_ip = 'http://127.0.0.1
+    url = f'http://{server_ip}:11434/api/generate'
     
     # 默认文本
     default_text = "Hello, how are you?"
@@ -51,7 +53,7 @@ def stream_response_from_api(user_text=None):
     try:
         # 首先检查Ollama服务是否可用
         try:
-            check_url = 'http://127.0.0.1:11434/api/tags'
+            check_url = f'http://{server_ip}:11434/api/tags'
             check_response = requests.get(check_url, timeout=5)
             if check_response.status_code == 200:
                 models = check_response.json().get('models', [])
